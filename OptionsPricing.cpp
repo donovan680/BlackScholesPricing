@@ -8,9 +8,10 @@
 
 double phi(double x); // cumulative normal distribution function kept here for
                       // internal linkage
-double getRiskTime(double o, double t); // σ√t
 
-OptionsPricing::OptionsPricing(QWidget *parent) : QWidget(parent) {
+OptionsPricing::OptionsPricing(QWidget *parent)
+    : QWidget(parent), underlyingAssetPriceS(0), strikePriceK(0), riskFreeR(0),
+      timeT(0), volatilyo(0) {
   ui.setupUi(this);
 
   // signals slots
@@ -24,33 +25,34 @@ void OptionsPricing::calculate() {
   // the user to enter values assuming that the user enters values in the spin
   // boxes
   qDebug() << "calculate called";
-  double S = ui.doubleSpinBoxS->value();
-  double K = ui.doubleSpinBoxK->value();
-  double t = ui.doubleSpinBoxT->value();
-  double o = ui.doubleSpinBoxO->value();
-  double r = ui.doubleSpinBoxR->value();
+  underlyingAssetPriceS = ui.doubleSpinBoxS->value();
+  strikePriceK = ui.doubleSpinBoxK->value();
+  timeT = ui.doubleSpinBoxT->value();
+  volatilyo = ui.doubleSpinBoxO->value();
+  riskFreeR = ui.doubleSpinBoxR->value();
 
-  double riskTime;
   try {
-    riskTime = getRiskTime(o, t);
+    riskTime = getRiskTime(volatilyo, timeT);
 
   } catch (std::overflow_error e) {
     qDebug() << "calculating d1 resulted in a divide by zero attempt -> "
              << e.what();
   }
-
-  double d1 = (log(S / K) + ((r + (pow(o, 2) / 2)) * t)) / riskTime;
-  double d2 = d1 - riskTime;
-
+  d1 = calculateD1();
+  d2 = calculateD2();
   // Calculate call
   double call;
-  QFuture<void> FutureCall = QtConcurrent::run(
-      [=, &call]() { call = (S * phi(d1)) - (K * exp(-r * t) * phi(d2)); });
+  QFuture<void> FutureCall = QtConcurrent::run([=, &call]() {
+    call = (underlyingAssetPriceS * phi(d1)) -
+           (strikePriceK * exp(-riskFreeR * timeT) * phi(d2));
+  });
 
   // Calculate put
   double put;
-  QFuture<void> FuturePut = QtConcurrent::run(
-      [=, &put]() { put = K * exp(-r * t) * phi(-d2) - (S * phi(-d1)); });
+  QFuture<void> FuturePut = QtConcurrent::run([=, &put]() {
+    put = strikePriceK * exp(-riskFreeR * timeT) * phi(-d2) -
+          (underlyingAssetPriceS * phi(-d1));
+  });
 
   FutureCall.waitForFinished();
   FuturePut.waitForFinished();
@@ -72,12 +74,20 @@ void OptionsPricing::clear() {
   ui.lcdNumberCall->display(0.0);
 }
 
-double getRiskTime(double o, double t) {
+double OptionsPricing::getRiskTime(double o, double t) const {
   double riskTime = o * sqrt(t);
   if (riskTime == 0.0)
     throw std::overflow_error("riskTime equals zero");
   return riskTime;
 }
+
+double OptionsPricing::calculateD1() const {
+  return (log(underlyingAssetPriceS / strikePriceK) +
+          ((riskFreeR + (pow(volatilyo, 2) / 2)) * timeT)) /
+         riskTime;
+}
+
+double OptionsPricing::calculateD2() const { return (d1 - riskTime); }
 
 // courtesy of John D. Cook: https://www.johndcook.com/blog/cpp_phi/
 double phi(double x) {
