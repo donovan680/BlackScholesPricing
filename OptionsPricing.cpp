@@ -11,7 +11,7 @@ double phi(double x); // cumulative normal distribution function kept here for
 
 OptionsPricing::OptionsPricing(QWidget *parent)
     : QWidget(parent), underlyingAssetPriceS(0), strikePriceK(0), riskFreeR(0),
-      timeT(0), volatilyo(0) {
+      timeT(0), volatilyo(0), riskTime(0), d1(0), d2(0) {
   ui.setupUi(this);
 
   // signals slots
