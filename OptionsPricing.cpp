@@ -11,7 +11,7 @@ double phi(double x); // cumulative normal distribution function kept here for
 
 OptionsPricing::OptionsPricing(QWidget* parent)
 	: QWidget(parent), underlyingAssetPriceS(0), strikePriceK(0), riskFreeR(0),
-	timeT(0), volatilyo(0), riskTime(0), d1(0), d2(0) {
+	timeT(0), volatilyo(0), riskTime(0), d1(0), d2(0), call(0), put(0) {
 	ui.setupUi(this);
 	ui.lcdNumberPut->setDigitCount(6);
 	ui.lcdNumberCall->setDigitCount(6);
@@ -38,15 +38,13 @@ void OptionsPricing::calculate() {
 	d1 = calculateD1();
 	d2 = calculateD2();
 	// Calculate call
-	double call;
-	QFuture<void> FutureCall = QtConcurrent::run([=, &call]() {
+	QFuture<void> FutureCall = QtConcurrent::run([&]() {
 		call = (underlyingAssetPriceS * phi(d1)) -
 			(strikePriceK * exp(-riskFreeR * timeT) * phi(d2));
 		});
 
 	// Calculate put
-	double put;
-	QFuture<void> FuturePut = QtConcurrent::run([=, &put]() {
+	QFuture<void> FuturePut = QtConcurrent::run([&]() {
 		put = strikePriceK * exp(-riskFreeR * timeT) * phi(-d2) -
 			(underlyingAssetPriceS * phi(-d1));
 		});
@@ -74,12 +72,10 @@ void OptionsPricing::handleInput()
 	// we can setup a signal to detect if the spinbox values isn't dirty and ask
 	// the user to enter values assuming that the user enters values in the spin
 	// boxes
-	qDebug() << "calculate called";
 	underlyingAssetPriceS = ui.doubleSpinBoxS->value();
 	strikePriceK = ui.doubleSpinBoxK->value();
 	volatilyo = ui.doubleSpinBoxO->value();
 	riskFreeR = ui.doubleSpinBoxR->value();
-	// Time can accept a double format or a fraction format
 	QString TimeTText = ui.doubleSpinBoxT->text();
 	try {
 		if (!TimeTText.isEmpty() && TimeTText.contains("/"))
@@ -128,6 +124,14 @@ double OptionsPricing::calculateD1() const {
 }
 
 double OptionsPricing::calculateD2() const { return (d1 - riskTime); }
+
+double OptionsPricing::getCall() const {
+	return call;
+}
+
+double OptionsPricing::getPut() const {
+	return put;
+}
 
 // courtesy of John D. Cook: https://www.johndcook.com/blog/cpp_phi/
 double phi(double x) {
