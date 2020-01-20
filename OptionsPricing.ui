@@ -81,19 +81,42 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="QDoubleSpinBox" name="doubleSpinBoxS"/>
+      <widget class="QDoubleSpinBox" name="doubleSpinBoxS">
+       <property name="decimals">
+        <number>4</number>
+       </property>
+      </widget>
      </item>
      <item>
-      <widget class="QDoubleSpinBox" name="doubleSpinBoxK"/>
+      <widget class="QDoubleSpinBox" name="doubleSpinBoxK">
+       <property name="decimals">
+        <number>4</number>
+       </property>
+      </widget>
      </item>
      <item>
-      <widget class="QDoubleSpinBox" name="doubleSpinBoxT"/>
+      <widget class="QLineEdit" name="doubleSpinBoxT">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
      </item>
      <item>
-      <widget class="QDoubleSpinBox" name="doubleSpinBoxO"/>
+      <widget class="QDoubleSpinBox" name="doubleSpinBoxO">
+       <property name="decimals">
+        <number>4</number>
+       </property>
+      </widget>
      </item>
      <item>
-      <widget class="QDoubleSpinBox" name="doubleSpinBoxR"/>
+      <widget class="QDoubleSpinBox" name="doubleSpinBoxR">
+       <property name="decimals">
+        <number>4</number>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
